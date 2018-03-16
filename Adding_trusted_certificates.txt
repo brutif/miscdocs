@@ -1,0 +1,74 @@
+Adding trusted certificates in Liberty
+
+Secure communication with another process over https requires that the public
+certificate of the other process be added as a "signer certificate" to a 
+Liberty trust store. 
+
+There are many variations in the way certificates 
+and trust stores can be configured, this process covers only common 
+configurations. 
+
+The first step is to obtain the certificate. The second step is to add it to a truststore.  
+
+1) Obtain the public certificate from the other process.
+
+This can be done using a web browser,  or open source tools.  If you 
+have direct access to the keystore of the other process, the key can be
+extracted from it.  Use one of the following three methods. 
+Steps might change slightly over time as 
+browsers and open source tools are updated. 
+
+1.1) Obtain certificate using a web browser
+  Using Firefox, click on the padlock icon to the left of the URL.
+  Click on the right arrow.
+  Click on "more information"
+  Click on "View Certificate"
+  Click on "Details"
+  Click on "Export"
+  Select a filename and "save as x509 certificate".
+
+1.2) Obtain certificate using openssl 
+  Run the following command and capture the output:
+  echo q | openssl s_client -showcerts -connect (hostname):(port)
+  Port is usually 443 if not customized.  Note that https is not specified. 
+  From the output of that command, copy the first certificate, including the lines 
+  "-----BEGIN CERTIFICATE-----" and "-----END CERTIFICATE-----"
+  to a file. 
+  
+
+1.3) Extract public key directly from server's keystore file.
+      keytool -rfc -export -keystore (filename) -alias (alias) -file publickey.cer
+      
+      In a newly created liberty keystore, there is only one key, and it's alias is "default". 
+     
+
+2) Add the certificate to a Liberty truststore.
+Perform the following steps. 
+
+2.1) Determine which file to modify
+Trust stores are usually found in the resources/security folder of 
+the Liberty server.  In the simplest default configuration, a single file
+called key.jks functions as both the keystore and truststore. 
+
+Another common configuration is to have one file as a key store, and
+another as a trust store. 
+
+Use of multiple trust stores is possible.  If you have this configuration,
+examine the server configuration to determine which file(s) should receive the 
+certificate. 
+
+If you previously received an error message in messages.log, it may say which truststore
+needs to be updated.
+
+2.2) Make a backup copy of the keyfile just in case there are any problems.
+
+2.3) Add the certificate using the keytool command.
+
+keytool -importcert \
+     -file <certificate to trust> \
+     -alias <alias for the certificate> \
+     -keystore <name of the trustore> \
+     -storepass <password for the truststore> \
+     -storetype jks
+     
+     
