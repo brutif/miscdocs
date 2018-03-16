@@ -71,4 +71,4 @@ keytool -importcert \
      -storepass <password for the truststore> \
      -storetype jks
      
-     
+Restart the server.      
